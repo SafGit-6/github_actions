@@ -1,31 +1,37 @@
 name: CI Pipeline
 
-# 1. Triggers: Only run on push to main branch
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  test:
+  test-and-build:
     runs-on: ubuntu-latest
-    
-    # 2. Matrix Strategy: Define versions to test against
     strategy:
       matrix:
         python-version: ['3.10', '3.12']
 
     steps:
-      # 3. Checkout code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 4. Setup Python based on the matrix version
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      # 5. Run tests
       - name: Run unit tests
-        run: |
-          python -m unittest test_app.py
+        run: python -m unittest test_app.py
+
+      # --- NEW: Docker Phase ---
+      - name: Build Docker image
+        run: docker build -t my-python-app:latest .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'my-python-app:latest'
+          format: 'table'
+          exit-code: '1' # This will fail the pipeline if vulnerabilities are found
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
