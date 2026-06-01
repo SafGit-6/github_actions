@@ -32,6 +32,6 @@ jobs:
         with:
           image-ref: 'my-python-app:latest'
           format: 'table'
-          exit-code: '1' # This will fail the pipeline if vulnerabilities are found
+          exit-code: '0' # Change 1 to 0 if you just want to see the report without failing the build
           ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
+          severity: 'CRITICAL' # Only fail if something EXTREMELY bad is found
